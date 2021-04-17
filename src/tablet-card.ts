@@ -127,7 +127,7 @@ export class TabletCard extends LitElement {
     let minutes = (this.config.screensaver_time || 1);
     this.showScreenSaver = false;
 
-    console.log("Screensaver: Stop", "Sleep in", minutes, "minutes");
+    console.log("Screensaver: Stop. Sleep in", minutes, "minutes");
 
     clearTimeout(this.screenSaverTimeout);
     this.screenSaverTimeout = setTimeout(() => { this._sleep() }, minutes * 60 * 1000);
@@ -135,7 +135,7 @@ export class TabletCard extends LitElement {
 
   protected _refresh() {
     if (this.config.auto_refresh_time) {
-      let minutes = (this.config.auto_refresh_time || 10);
+      let minutes = (this.config.auto_refresh_time);
       setTimeout(() => { window.location.reload() }, minutes * 60 * 1000);
 
       console.log("Auto reload page in", minutes, "minutes");
