@@ -18,8 +18,9 @@ import {
   handleAction,
   LovelaceCardEditor,
   getLovelace,
+  LovelaceCard,
 } from 'custom-card-helpers'; // This is a community maintained npm module with common helper functions/types
-
+import { hass, provideHass } from "card-tools/src/hass";
 import './editor';
 
 import type { BoilerplateCardConfig } from './types';
@@ -45,6 +46,17 @@ console.info(
 // TODO Name your custom element
 @customElement('boilerplate-card')
 export class BoilerplateCard extends LitElement {
+  CUSTOM_TYPE_PREFIX = "custom:";
+
+  constructor() {
+    super();
+
+    this.date = new Date();
+    setInterval(() => {
+      this.date = new Date();
+    }, 1000);
+  }
+
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
     return document.createElement('boilerplate-card-editor');
   }
@@ -56,6 +68,7 @@ export class BoilerplateCard extends LitElement {
   // TODO Add any properities that should cause your element to re-render here
   // https://lit-element.polymer-project.org/guide/properties
   @property({ attribute: false }) public hass!: HomeAssistant;
+  @internalProperty() private date: Date;
   @internalProperty() private config!: BoilerplateCardConfig;
 
   // https://lit-element.polymer-project.org/guide/properties#accessors-custom
@@ -77,11 +90,7 @@ export class BoilerplateCard extends LitElement {
 
   // https://lit-element.polymer-project.org/guide/lifecycle#shouldupdate
   protected shouldUpdate(changedProps: PropertyValues): boolean {
-    if (!this.config) {
-      return false;
-    }
-
-    return hasConfigOrEntityChanged(this, changedProps, false);
+    return hasConfigOrEntityChanged(this, changedProps, true);
   }
 
   // https://lit-element.polymer-project.org/guide/templates
@@ -95,6 +104,14 @@ export class BoilerplateCard extends LitElement {
       return this._showError(localize('common.show_error'));
     }
 
+    const formatting: Intl.DateTimeFormatOptions = {
+      year: undefined,
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    }
+
     return html`
       <ha-card
         .header=${this.config.name}
@@ -105,7 +122,25 @@ export class BoilerplateCard extends LitElement {
         })}
         tabindex="0"
         .label=${`Boilerplate: ${this.config.entity || 'No Entity Defined'}`}
-      ></ha-card>
+      >
+        <h1>${new Intl.DateTimeFormat(undefined, formatting).format(this.date)}</h1>
+
+        ${this.config.cards.map((card) => {
+          let tag = card.type;
+          if (tag.startsWith(this.CUSTOM_TYPE_PREFIX)) {
+            tag = tag.substr(this.CUSTOM_TYPE_PREFIX.length);
+          } else {
+            tag = `hui-${tag}-card`;
+          }
+
+          const cardElement = document.createElement(tag) as LovelaceCard;
+          cardElement.setConfig(card);
+          cardElement.hass = hass();
+
+          return cardElement
+        })}
+
+      </ha-card>
     `;
   }
 

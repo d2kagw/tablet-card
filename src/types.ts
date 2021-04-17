@@ -1,4 +1,9 @@
-import { ActionConfig, LovelaceCard, LovelaceCardConfig, LovelaceCardEditor } from 'custom-card-helpers';
+import {
+  ActionConfig,
+  LovelaceCard,
+  LovelaceCardConfig,
+  LovelaceCardEditor
+} from 'custom-card-helpers';
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -18,4 +23,5 @@ export interface BoilerplateCardConfig extends LovelaceCardConfig {
   tap_action?: ActionConfig;
   hold_action?: ActionConfig;
   double_tap_action?: ActionConfig;
+  cards: Array<LovelaceCardConfig>;
 }
