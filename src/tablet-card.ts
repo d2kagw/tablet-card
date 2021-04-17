@@ -23,14 +23,14 @@ import {
 import { hass, provideHass } from "card-tools/src/hass";
 import './editor';
 
-import type { BoilerplateCardConfig } from './types';
+import type { TabletCardConfig } from './types';
 import { actionHandler } from './action-handler-directive';
 import { CARD_VERSION } from './const';
 import { localize } from './localize/localize';
 
 /* eslint no-console: 0 */
 console.info(
-  `%c  BOILERPLATE-CARD \n%c  ${localize('common.version')} ${CARD_VERSION}    `,
+  `%c  tablet-card \n%c  ${localize('common.version')} ${CARD_VERSION}    `,
   'color: orange; font-weight: bold; background: black',
   'color: white; font-weight: bold; background: dimgray',
 );
@@ -38,14 +38,14 @@ console.info(
 // This puts your card into the UI card picker dialog
 (window as any).customCards = (window as any).customCards || [];
 (window as any).customCards.push({
-  type: 'boilerplate-card',
-  name: 'Boilerplate Card',
+  type: 'tablet-card',
+  name: 'Tablet Card',
   description: 'A template custom card for you to create something awesome',
 });
 
 // TODO Name your custom element
-@customElement('boilerplate-card')
-export class BoilerplateCard extends LitElement {
+@customElement('tablet-card')
+export class TabletCard extends LitElement {
   CUSTOM_TYPE_PREFIX = "custom:";
 
   constructor() {
@@ -58,7 +58,7 @@ export class BoilerplateCard extends LitElement {
   }
 
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
-    return document.createElement('boilerplate-card-editor');
+    return document.createElement('tablet-card-editor');
   }
 
   public static getStubConfig(): object {
@@ -69,10 +69,25 @@ export class BoilerplateCard extends LitElement {
   // https://lit-element.polymer-project.org/guide/properties
   @property({ attribute: false }) public hass!: HomeAssistant;
   @internalProperty() private date: Date;
-  @internalProperty() private config!: BoilerplateCardConfig;
+  @internalProperty() private config!: TabletCardConfig;
+
+  private renderCard(card): LovelaceCard | void {
+    let tag = card.type;
+    if (tag.startsWith(this.CUSTOM_TYPE_PREFIX)) {
+      tag = tag.substr(this.CUSTOM_TYPE_PREFIX.length);
+    } else {
+      tag = `hui-${tag}-card`;
+    }
+
+    const cardElement = document.createElement(tag) as LovelaceCard;
+    cardElement.setConfig(card);
+    cardElement.hass = hass();
+
+    return cardElement;
+  }
 
   // https://lit-element.polymer-project.org/guide/properties#accessors-custom
-  public setConfig(config: BoilerplateCardConfig): void {
+  public setConfig(config: TabletCardConfig): void {
     // TODO Check for required fields and that they are of the proper format
     if (!config) {
       throw new Error(localize('common.invalid_configuration'));
@@ -83,7 +98,7 @@ export class BoilerplateCard extends LitElement {
     }
 
     this.config = {
-      name: 'Boilerplate',
+      name: 'Tablet',
       ...config,
     };
   }
@@ -107,7 +122,6 @@ export class BoilerplateCard extends LitElement {
 
     return html`
       <ha-card
-        .header=${this.config.name}
         .actionHandler=${actionHandler({
           hasHold: hasAction(this.config.hold_action),
           hasDoubleClick: hasAction(this.config.double_tap_action),
@@ -115,29 +129,74 @@ export class BoilerplateCard extends LitElement {
         tabindex="0"
         .label=${`Boilerplate: ${this.config.entity || 'No Entity Defined'}`}
       >
-        <h1>${new Intl.DateTimeFormat(undefined, timeFormatter).format(this.date)}</h1>
-
-        ${this.config.cards.map((card) => {
-          let tag = card.type;
-          if (tag.startsWith(this.CUSTOM_TYPE_PREFIX)) {
-            tag = tag.substr(this.CUSTOM_TYPE_PREFIX.length);
-          } else {
-            tag = `hui-${tag}-card`;
-          }
-
-          const cardElement = document.createElement(tag) as LovelaceCard;
-          cardElement.setConfig(card);
-          cardElement.hass = hass();
-
-          return cardElement
-        })}
-
+        <div class="tablet-card-container">
+          <div class="tablet-card-column tablet-card-column-1">
+            <h1>${new Intl.DateTimeFormat(undefined, timeFormatter).format(this.date)}</h1>
+          </div>
+          <div class="tablet-card-column tablet-card-column-2">
+            ${this.config.cards.map((card) =>
+              html`
+              <div class="tablet-card-card">
+                ${ this.renderCard(card) }
+              </div>
+              `
+            )}
+          </div>
+          <div class="tablet-card-column tablet-card-column-3">
+            ${this.config.cards.map((card) =>
+              html`
+              <div class="tablet-card-card">
+                ${ this.renderCard(card) }
+              </div>
+              `
+            )}
+          </div>
+        </div>
       </ha-card>
     `;
   }
 
+  protected px(int: Number): String {
+    return `${int}px`;
+  }
+
   // https://lit-element.polymer-project.org/guide/styles
   static get styles(): CSSResult {
-    return css``;
+    return css`
+      :root {
+        --tablet-card-spacing: 10px;
+      }
+      .type-custom-tablet-card {
+        height: 100%;
+        --tablet-card-spacing: 10px;
+      }
+      .tablet-card-container {
+        background: #f00;
+        display: flex;
+        padding: var(--tablet-card-spacing) var(--tablet-card-spacing) 0;
+        height: 100%;
+        max-height: 93vh;
+      }
+      .tablet-card-column {
+        flex-grow: 1;
+        flex-shrink: 1;
+        margin: 0 var(--tablet-card-spacing);
+        overflow: hidden scroll;
+
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .tablet-card-column::-webkit-scrollbar {
+        display: none;
+      }
+      .tablet-card-column-1 {
+        flex-shrink: 0;
+        flex-grow: 0;
+        flex-basis: 20%;
+      }
+      .tablet-card-card {
+        margin: var(--tablet-card-spacing) 0 calc(var(--tablet-card-spacing)*2);
+      }
+    `;
   }
 }
