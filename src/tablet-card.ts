@@ -22,6 +22,7 @@ import {
 } from 'custom-card-helpers'; // This is a community maintained npm module with common helper functions/types
 import { hass, provideHass } from "card-tools/src/hass";
 import './editor';
+import './screensaver-card';
 
 import type { TabletCardConfig } from './types';
 import { actionHandler } from './action-handler-directive';
@@ -55,6 +56,9 @@ export class TabletCard extends LitElement {
     setInterval(() => {
       this.date = new Date();
     }, 1000);
+
+    this.screenSaverTimeout = null;
+    this.showScreenSaver = false;
   }
 
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
@@ -65,10 +69,10 @@ export class TabletCard extends LitElement {
     return {};
   }
 
-  // TODO Add any properities that should cause your element to re-render here
-  // https://lit-element.polymer-project.org/guide/properties
   @property({ attribute: false }) public hass!: HomeAssistant;
   @internalProperty() private date: Date;
+  @internalProperty() private showScreenSaver: boolean;
+  @internalProperty() private screenSaverTimeout: any;
   @internalProperty() private config!: TabletCardConfig;
 
   private renderCard(card): LovelaceCard | void {
@@ -88,7 +92,6 @@ export class TabletCard extends LitElement {
 
   // https://lit-element.polymer-project.org/guide/properties#accessors-custom
   public setConfig(config: TabletCardConfig): void {
-    // TODO Check for required fields and that they are of the proper format
     if (!config) {
       throw new Error(localize('common.invalid_configuration'));
     }
@@ -101,11 +104,32 @@ export class TabletCard extends LitElement {
       name: 'Tablet',
       ...config,
     };
+
+    this._wakeUp()
+
+    console.warn("Set Config", config);
   }
 
   // https://lit-element.polymer-project.org/guide/lifecycle#shouldupdate
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     return hasConfigOrEntityChanged(this, changedProps, true);
+  }
+
+  protected _sleep() {
+    console.log("SLEEPY TIME");
+    this.showScreenSaver = true;
+    clearTimeout(this.screenSaverTimeout);
+  }
+
+  protected _wakeUp() {
+    console.log("Wake Up Screensaver");
+    this.showScreenSaver = false;
+
+    clearTimeout(this.screenSaverTimeout);
+    this.screenSaverTimeout = setTimeout(
+      () => { this._sleep() },
+      (this.config.screensaver_time||1)*60*1000
+    )
   }
 
   // https://lit-element.polymer-project.org/guide/templates
@@ -128,8 +152,11 @@ export class TabletCard extends LitElement {
         })}
         tabindex="0"
         .label=${`Boilerplate: ${this.config.entity || 'No Entity Defined'}`}
+        @click="${this._wakeUp}"
       >
-        <div class="tablet-card-container">
+        <screensaver-card ?visible=${this.showScreenSaver}></screensaver-card>
+        <div
+          class="tablet-card-container">
           <div class="tablet-card-column tablet-card-column-1">
             <h1>${new Intl.DateTimeFormat(undefined, timeFormatter).format(this.date)}</h1>
           </div>
@@ -154,10 +181,6 @@ export class TabletCard extends LitElement {
         </div>
       </ha-card>
     `;
-  }
-
-  protected px(int: Number): String {
-    return `${int}px`;
   }
 
   // https://lit-element.polymer-project.org/guide/styles
