@@ -95,16 +95,7 @@ export class BoilerplateCard extends LitElement {
 
   // https://lit-element.polymer-project.org/guide/templates
   protected render(): TemplateResult | void {
-    // TODO Check for stateObj or other necessary things and render a warning if missing
-    if (this.config.show_warning) {
-      return this._showWarning(localize('common.show_warning'));
-    }
-
-    if (this.config.show_error) {
-      return this._showError(localize('common.show_error'));
-    }
-
-    const formatting: Intl.DateTimeFormatOptions = {
+    const timeFormatter: Intl.DateTimeFormatOptions = {
       year: undefined,
       hour: "2-digit",
       minute: "2-digit",
@@ -112,10 +103,11 @@ export class BoilerplateCard extends LitElement {
       hour12: false,
     }
 
+    console.info("Draw")
+
     return html`
       <ha-card
         .header=${this.config.name}
-        @action=${this._handleAction}
         .actionHandler=${actionHandler({
           hasHold: hasAction(this.config.hold_action),
           hasDoubleClick: hasAction(this.config.double_tap_action),
@@ -123,7 +115,7 @@ export class BoilerplateCard extends LitElement {
         tabindex="0"
         .label=${`Boilerplate: ${this.config.entity || 'No Entity Defined'}`}
       >
-        <h1>${new Intl.DateTimeFormat(undefined, formatting).format(this.date)}</h1>
+        <h1>${new Intl.DateTimeFormat(undefined, timeFormatter).format(this.date)}</h1>
 
         ${this.config.cards.map((card) => {
           let tag = card.type;
@@ -141,31 +133,6 @@ export class BoilerplateCard extends LitElement {
         })}
 
       </ha-card>
-    `;
-  }
-
-  private _handleAction(ev: ActionHandlerEvent): void {
-    if (this.hass && this.config && ev.detail.action) {
-      handleAction(this, this.hass, this.config, ev.detail.action);
-    }
-  }
-
-  private _showWarning(warning: string): TemplateResult {
-    return html`
-      <hui-warning>${warning}</hui-warning>
-    `;
-  }
-
-  private _showError(error: string): TemplateResult {
-    const errorCard = document.createElement('hui-error-card');
-    errorCard.setConfig({
-      type: 'error',
-      error,
-      origConfig: this.config,
-    });
-
-    return html`
-      ${errorCard}
     `;
   }
 
