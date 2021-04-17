@@ -106,8 +106,9 @@ export class TabletCard extends LitElement {
     };
 
     this._wakeUp()
+    this._refresh()
 
-    console.warn("Set Config", config);
+    console.warn("Tablet Card Config", config);
   }
 
   // https://lit-element.polymer-project.org/guide/lifecycle#shouldupdate
@@ -116,20 +117,29 @@ export class TabletCard extends LitElement {
   }
 
   protected _sleep() {
-    console.log("SLEEPY TIME");
     this.showScreenSaver = true;
     clearTimeout(this.screenSaverTimeout);
+
+    console.log("Screensaver: Start");
   }
 
   protected _wakeUp() {
-    console.log("Wake Up Screensaver");
+    let minutes = (this.config.screensaver_time || 1);
     this.showScreenSaver = false;
 
+    console.log("Screensaver: Stop", "Sleep in", minutes, "minutes");
+
     clearTimeout(this.screenSaverTimeout);
-    this.screenSaverTimeout = setTimeout(
-      () => { this._sleep() },
-      (this.config.screensaver_time||1)*60*1000
-    )
+    this.screenSaverTimeout = setTimeout(() => { this._sleep() }, minutes * 60 * 1000);
+  }
+
+  protected _refresh() {
+    if (this.config.auto_refresh_time) {
+      let minutes = (this.config.auto_refresh_time || 10);
+      setTimeout(() => { window.location.reload() }, minutes * 60 * 1000);
+
+      console.log("Auto reload page in", minutes, "minutes");
+    }
   }
 
   // https://lit-element.polymer-project.org/guide/templates
