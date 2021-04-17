@@ -1,7 +1,7 @@
 {
-  "name": "boilerplate-card",
+  "name": "tablet-card",
   "version": "1.3.2",
-  "description": "Lovelace boilerplate-card",
+  "description": "Tablet Card for Home Assistant",
   "keywords": [
     "home-assistant",
     "homeassistant",
@@ -10,9 +10,9 @@
     "lovelace",
     "custom-cards"
   ],
-  "module": "boilerplate-card.js",
-  "repository": "git@github.com:custom_cards/boilerplate-card.git",
-  "author": "Ian Richardson <iantrich@gmail.com>",
+  "module": "tablet-card.js",
+  "repository": "git@github.com:d2kagw/topbar-card.git",
+  "author": "Aaron Wallis <aaron@d2kagw.com>",
   "license": "MIT",
   "dependencies": {
     "custom-card-helpers": "^1.6.6",

@@ -12,7 +12,7 @@ import {
 } from 'lit-element';
 import { HomeAssistant, fireEvent, LovelaceCardEditor, ActionConfig } from 'custom-card-helpers';
 
-import { BoilerplateCardConfig } from './types';
+import { TabletCardConfig } from './types';
 
 const options = {
   required: {
@@ -55,15 +55,15 @@ const options = {
   },
 };
 
-@customElement('boilerplate-card-editor')
-export class BoilerplateCardEditor extends LitElement implements LovelaceCardEditor {
+@customElement('tablet-card-editor')
+export class TabletCardEditor extends LitElement implements LovelaceCardEditor {
   @property({ attribute: false }) public hass?: HomeAssistant;
-  @internalProperty() private _config?: BoilerplateCardConfig;
+  @internalProperty() private _config?: TabletCardConfig;
   @internalProperty() private _toggle?: boolean;
   @internalProperty() private _helpers?: any;
   private _initialized = false;
 
-  public setConfig(config: BoilerplateCardConfig): void {
+  public setConfig(config: TabletCardConfig): void {
     this._config = config;
 
     this.loadCardHelpers();

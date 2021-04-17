@@ -1,9 +1,9 @@
 resources:
-  - url: http://127.0.0.1:5000/boilerplate-card.js
+  - url: http://127.0.0.1:5000/tablet-card.js
     type: module
 views:
   - cards:
-      - type: custom:boilerplate-card
-        name: Boilerplate Card Development
+      - type: custom:tablet-card
+        name: Tablet Card
         entity: sun.sun
         test_gui: true
