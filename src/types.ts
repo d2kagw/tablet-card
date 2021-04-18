@@ -12,15 +12,21 @@ declare global {
   }
 }
 
+interface TabletCardColumn {
+  cards: Array<LovelaceCardConfig>;
+}
+
 export interface TabletCardConfig extends LovelaceCardConfig {
   type: string;
   name?: string;
   show_warning?: boolean;
   show_error?: boolean;
   test_gui?: boolean;
-  entity?: string;
-  tap_action?: ActionConfig;
-  hold_action?: ActionConfig;
-  double_tap_action?: ActionConfig;
-  cards: Array<LovelaceCardConfig>;
+
+  columns: Array<TabletCardColumn>;
+
+  logo?: string;
+
+  screensaver_time?: number;
+  auto_refresh_time?: number;
 }

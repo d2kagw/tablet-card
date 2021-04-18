@@ -148,11 +148,26 @@ export class TabletCard extends LitElement {
       year: undefined,
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
       hour12: false,
     }
 
     console.info("Draw")
+
+    const logoHTML = this.config.logo ? html`
+      <div class="tablet-card-card">
+        <img class="tablet-card-logo" src="${this.config.logo}" />
+      </div>
+    ` : ``;
+
+    const clockHTML = html`
+      <div class="tablet-card-card">
+        <div class="tablet-card-clock">
+          <span>
+            ${new Intl.DateTimeFormat(undefined, timeFormatter).format(this.date)}
+          </span>
+        </div>
+      </div>
+    `;
 
     return html`
       <ha-card
@@ -165,29 +180,24 @@ export class TabletCard extends LitElement {
         @click="${this._wakeUp}"
       >
         <screensaver-card ?visible=${this.showScreenSaver}></screensaver-card>
-        <div
-          class="tablet-card-container">
-          <div class="tablet-card-column tablet-card-column-1">
-            <h1>${new Intl.DateTimeFormat(undefined, timeFormatter).format(this.date)}</h1>
+        <div class="tablet-card-container">
+          <div class="tablet-card-column tablet-card-column-0">
+            ${logoHTML}
+            ${clockHTML}
           </div>
-          <div class="tablet-card-column tablet-card-column-2">
-            ${this.config.cards.map((card) =>
-              html`
-              <div class="tablet-card-card">
-                ${ this.renderCard(card) }
+          ${this.config.columns.map((column, i) =>
+            html`
+              <div class="tablet-card-column tablet-card-column-${i + 1}" >
+                ${column.cards.map((card) =>
+                  html`
+                    <div class="tablet-card-card">
+                      ${ this.renderCard(card) }
+                    </div>
+                  `
+                )}
               </div>
-              `
-            )}
-          </div>
-          <div class="tablet-card-column tablet-card-column-3">
-            ${this.config.cards.map((card) =>
-              html`
-              <div class="tablet-card-card">
-                ${ this.renderCard(card) }
-              </div>
-              `
-            )}
-          </div>
+            `
+          )}
         </div>
       </ha-card>
     `;
@@ -222,13 +232,46 @@ export class TabletCard extends LitElement {
       .tablet-card-column::-webkit-scrollbar {
         display: none;
       }
-      .tablet-card-column-1 {
+      .tablet-card-column-0 {
         flex-shrink: 0;
         flex-grow: 0;
         flex-basis: 20%;
+        padding: 0 var(--tablet-card-spacing);
       }
       .tablet-card-card {
         margin: var(--tablet-card-spacing) 0 calc(var(--tablet-card-spacing)*2);
+      }
+      @media only screen and (max-width: 1000px) {
+        .tablet-card-container {
+          flex-direction: column;
+          height: auto;
+          max-height: none;
+        }
+        .tablet-card-column {
+          overflow: visible;
+        }
+        .tablet-card-column-0 {
+          flex-shrink: 1;
+          flex-grow: 1;
+          flex-basis: auto;
+        }
+      }
+
+      .tablet-card-logo {
+        width: 100%;
+        max-height: 25vw;
+        object-fit: contain;
+      }
+
+      .tablet-card-clock {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .tablet-card-clock span {
+        font-size: 4rem;
+        line-height: 100%;
       }
     `;
   }

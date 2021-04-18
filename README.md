@@ -4,7 +4,9 @@ A card designed to precicely manage the layout for tablet devices - optimised fo
 
 ## Todo
 
-- [ ] have _N_ columns
+- [x] have _N_ columns
+- [x] have a logo/image
+- [x] have a 24hr clock
 - [ ] test on ipads and androids
 - [ ] have a status bar of things
 - [ ] have a row of buttons for common events
