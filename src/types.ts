@@ -1,5 +1,4 @@
 import {
-  ActionConfig,
   LovelaceCard,
   LovelaceCardConfig,
   LovelaceCardEditor

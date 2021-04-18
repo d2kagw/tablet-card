@@ -14,13 +14,11 @@ import {
   HomeAssistant,
   hasConfigOrEntityChanged,
   hasAction,
-  ActionHandlerEvent,
-  handleAction,
   LovelaceCardEditor,
   getLovelace,
   LovelaceCard,
 } from 'custom-card-helpers'; // This is a community maintained npm module with common helper functions/types
-import { hass, provideHass } from "card-tools/src/hass";
+import { hass } from "card-tools/src/hass";
 import './editor';
 import './screensaver-card';
 
@@ -116,15 +114,15 @@ export class TabletCard extends LitElement {
     return hasConfigOrEntityChanged(this, changedProps, true);
   }
 
-  protected _sleep() {
+  protected _sleep(): void {
     this.showScreenSaver = true;
     clearTimeout(this.screenSaverTimeout);
 
     console.log("Screensaver: Start");
   }
 
-  protected _wakeUp() {
-    let minutes = (this.config.screensaver_time || 1);
+  protected _wakeUp(): void {
+    const minutes = (this.config.screensaver_time || 1);
     this.showScreenSaver = false;
 
     console.log("Screensaver: Stop. Sleep in", minutes, "minutes");
@@ -133,9 +131,9 @@ export class TabletCard extends LitElement {
     this.screenSaverTimeout = setTimeout(() => { this._sleep() }, minutes * 60 * 1000);
   }
 
-  protected _refresh() {
+  protected _refresh(): void {
     if (this.config.auto_refresh_time) {
-      let minutes = (this.config.auto_refresh_time);
+      const minutes = (this.config.auto_refresh_time);
       setTimeout(() => { window.location.reload() }, minutes * 60 * 1000);
 
       console.log("Auto reload page in", minutes, "minutes");
