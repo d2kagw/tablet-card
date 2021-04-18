@@ -15,12 +15,13 @@
   "author": "Aaron Wallis <aaron@d2kagw.com>",
   "license": "MIT",
   "dependencies": {
+    "card-tools": "github:thomasloven/lovelace-card-tools",
     "custom-card-helpers": "^1.6.6",
+    "googlephotos": "^0.3.4",
     "home-assistant-js-websocket": "^4.5.0",
     "lit-element": "^2.4.0",
     "lit-html": "^1.3.0",
-    "tslib": "^2.2.0",
-    "card-tools": "github:thomasloven/lovelace-card-tools"
+    "tslib": "^2.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.3",
