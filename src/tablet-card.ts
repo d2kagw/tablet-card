@@ -137,14 +137,7 @@ export class TabletCard extends LitElement {
 
   // https://lit-element.polymer-project.org/guide/templates
   protected render(): TemplateResult | void {
-    const timeFormatter: Intl.DateTimeFormatOptions = {
-      year: undefined,
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    }
-
-    console.info("Draw")
+    console.info("Tablet Card Draw")
 
     const logoHTML = this.config.logo ? html`
       <div class="tablet-card-card">
