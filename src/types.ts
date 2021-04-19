@@ -29,3 +29,11 @@ export interface TabletCardConfig extends LovelaceCardConfig {
   screensaver_time?: number;
   auto_refresh_time?: number;
 }
+
+export interface TabletNoticeCardConfig extends LovelaceCardConfig {
+  icon?: string;
+  label: string;
+  color?: string;
+  entity?: string;
+  state?: string;
+}
