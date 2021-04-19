@@ -23,6 +23,7 @@ export interface TabletCardConfig extends LovelaceCardConfig {
   test_gui?: boolean;
 
   columns: Array<TabletCardColumn>;
+  utility_cards: Array<LovelaceCardConfig>;
 
   logo?: string;
 

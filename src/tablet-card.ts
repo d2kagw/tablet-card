@@ -22,6 +22,7 @@ import { hass } from "card-tools/src/hass";
 import './editor';
 import './screensaver-card';
 import './tablet-clock-card';
+import './tablet-notice-card';
 
 import type { TabletCardConfig } from './types';
 import { actionHandler } from './action-handler-directive';
@@ -53,6 +54,9 @@ export class TabletCard extends LitElement {
 
     this.screenSaverTimeout = null;
     this.showScreenSaver = false;
+
+    this.cards = [];
+    this.utilityCards = [];
   }
 
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
@@ -64,11 +68,13 @@ export class TabletCard extends LitElement {
   }
 
   @property({ attribute: false }) public hass!: HomeAssistant;
+  @internalProperty() private cards: Array<Array<LovelaceCard>>;
+  @internalProperty() private utilityCards: Array<LovelaceCard>;
   @internalProperty() private showScreenSaver: boolean;
   @internalProperty() private screenSaverTimeout: any;
   @internalProperty() private config!: TabletCardConfig;
 
-  private renderCard(card): LovelaceCard | void {
+  private renderCard(card): LovelaceCard {
     let tag = card.type;
     if (tag.startsWith(this.CUSTOM_TYPE_PREFIX)) {
       tag = tag.substr(this.CUSTOM_TYPE_PREFIX.length);
@@ -83,7 +89,6 @@ export class TabletCard extends LitElement {
     return cardElement;
   }
 
-  // https://lit-element.polymer-project.org/guide/properties#accessors-custom
   public setConfig(config: TabletCardConfig): void {
     if (!config) {
       throw new Error(localize('common.invalid_configuration'));
@@ -101,11 +106,32 @@ export class TabletCard extends LitElement {
     this._wakeUp()
     this._refresh()
 
-    console.warn("Tablet Card Config", config);
+    // prepare cards for rendering
+    this.cards = this.config.columns.map((column) => {
+      return column.cards.map((card) => {
+        return this.renderCard(card);
+      });
+    });
+    this.utilityCards = this.config.utility_cards.map((card) => {
+      return this.renderCard(card);
+    });
   }
 
-  // https://lit-element.polymer-project.org/guide/lifecycle#shouldupdate
   protected shouldUpdate(changedProps: PropertyValues): boolean {
+    // provide all cards with the updated hass object
+    if (changedProps.has("hass")) {
+      changedProps.get("hass");
+
+      this.cards.forEach((column) =>
+        column.forEach((card) =>
+          card.hass = hass()
+        )
+      );
+      this.utilityCards.forEach((card) =>
+        card.hass = hass()
+      );
+    }
+
     return hasConfigOrEntityChanged(this, changedProps, false);
   }
 
@@ -135,7 +161,6 @@ export class TabletCard extends LitElement {
     }
   }
 
-  // https://lit-element.polymer-project.org/guide/templates
   protected render(): TemplateResult | void {
     console.info("Tablet Card Draw")
 
@@ -144,7 +169,6 @@ export class TabletCard extends LitElement {
         <img class="tablet-card-logo" src="${this.config.logo}" />
       </div>
     ` : ``;
-
 
     return html`
       <ha-card
@@ -159,16 +183,27 @@ export class TabletCard extends LitElement {
         <screensaver-card ?visible=${this.showScreenSaver}></screensaver-card>
         <div class="tablet-card-container">
           <div class="tablet-card-column tablet-card-column-0">
-            ${logoHTML}
-            <tablet-clock-card></tablet-clock-card>
-          </div>
-          ${this.config.columns.map((column, i) =>
-            html`
-              <div class="tablet-card-column tablet-card-column-${i + 1}" >
-                ${column.cards.map((card) =>
+            <div class="tablet-card-column-0-starter">
+              ${logoHTML}
+              <tablet-clock-card></tablet-clock-card>
+            </div>
+            <div class="tablet-card-column-0-ender">
+              ${this.utilityCards.map((card) =>
                   html`
                     <div class="tablet-card-card">
-                      ${ this.renderCard(card) }
+                      ${ card }
+                    </div>
+                  `
+                )}
+            </div>
+          </div>
+          ${this.cards.map((column, i) =>
+            html`
+              <div class="tablet-card-column tablet-card-column-${i + 1}" >
+                ${column.map((card) =>
+                  html`
+                    <div class="tablet-card-card">
+                      ${ card }
                     </div>
                   `
                 )}
@@ -180,7 +215,6 @@ export class TabletCard extends LitElement {
     `;
   }
 
-  // https://lit-element.polymer-project.org/guide/styles
   static get styles(): CSSResult {
     return css`
       :root {
@@ -214,8 +248,21 @@ export class TabletCard extends LitElement {
         flex-shrink: 0;
         flex-grow: 0;
         flex-basis: 20%;
-        padding: 0 var(--tablet-card-spacing);
+        padding: var(--tablet-card-spacing);
+
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
       }
+      .tablet-card-column-0-starter,
+      .tablet-card-column-0-ender {
+        flex-grow: 0;
+        flex-shrink: 0;
+      }
+      .tablet-card-column-0-starter {
+        margin-bottom: calc(var(--tablet-card-spacing)*2);
+      }
+
       .tablet-card-card {
         margin: var(--tablet-card-spacing) 0 calc(var(--tablet-card-spacing)*2);
       }
