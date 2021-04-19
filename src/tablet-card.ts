@@ -191,7 +191,7 @@ export class TabletCard extends LitElement {
         --tablet-card-spacing: 10px;
       }
       .tablet-card-container {
-        background: #f00;
+        background: var(--background-color);
         display: flex;
         padding: var(--tablet-card-spacing) var(--tablet-card-spacing) 0;
         height: 100%;
