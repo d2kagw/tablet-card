@@ -21,6 +21,7 @@ import {
 import { hass } from "card-tools/src/hass";
 import './editor';
 import './screensaver-card';
+import './tablet-clock-card';
 
 import type { TabletCardConfig } from './types';
 import { actionHandler } from './action-handler-directive';
@@ -50,11 +51,6 @@ export class TabletCard extends LitElement {
   constructor() {
     super();
 
-    this.date = new Date();
-    setInterval(() => {
-      this.date = new Date();
-    }, 1000);
-
     this.screenSaverTimeout = null;
     this.showScreenSaver = false;
   }
@@ -68,7 +64,6 @@ export class TabletCard extends LitElement {
   }
 
   @property({ attribute: false }) public hass!: HomeAssistant;
-  @internalProperty() private date: Date;
   @internalProperty() private showScreenSaver: boolean;
   @internalProperty() private screenSaverTimeout: any;
   @internalProperty() private config!: TabletCardConfig;
@@ -111,7 +106,7 @@ export class TabletCard extends LitElement {
 
   // https://lit-element.polymer-project.org/guide/lifecycle#shouldupdate
   protected shouldUpdate(changedProps: PropertyValues): boolean {
-    return hasConfigOrEntityChanged(this, changedProps, true);
+    return hasConfigOrEntityChanged(this, changedProps, false);
   }
 
   protected _sleep(): void {
@@ -157,15 +152,6 @@ export class TabletCard extends LitElement {
       </div>
     ` : ``;
 
-    const clockHTML = html`
-      <div class="tablet-card-card">
-        <div class="tablet-card-clock">
-          <span>
-            ${new Intl.DateTimeFormat(undefined, timeFormatter).format(this.date)}
-          </span>
-        </div>
-      </div>
-    `;
 
     return html`
       <ha-card
@@ -181,7 +167,7 @@ export class TabletCard extends LitElement {
         <div class="tablet-card-container">
           <div class="tablet-card-column tablet-card-column-0">
             ${logoHTML}
-            ${clockHTML}
+            <tablet-clock-card></tablet-clock-card>
           </div>
           ${this.config.columns.map((column, i) =>
             html`
@@ -259,17 +245,6 @@ export class TabletCard extends LitElement {
         width: 100%;
         max-height: 25vw;
         object-fit: contain;
-      }
-
-      .tablet-card-clock {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .tablet-card-clock span {
-        font-size: 4rem;
-        line-height: 100%;
       }
     `;
   }
