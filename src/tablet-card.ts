@@ -200,6 +200,7 @@ export class TabletCard extends LitElement {
       .tablet-card-column {
         flex-grow: 1;
         flex-shrink: 1;
+        flex-basis: 30%;
         margin: 0 var(--tablet-card-spacing);
         overflow: hidden scroll;
 
@@ -226,6 +227,7 @@ export class TabletCard extends LitElement {
         }
         .tablet-card-column {
           overflow: visible;
+          flex-basis: auto;
         }
         .tablet-card-column-0 {
           flex-shrink: 1;
