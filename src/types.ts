@@ -31,6 +31,10 @@ export interface TabletCardConfig extends LovelaceCardConfig {
   auto_refresh_time?: number;
 }
 
+export interface TabletClockCardConfig extends LovelaceCardConfig {
+  frameless?: boolean;
+}
+
 export interface TabletNoticeCardConfig extends LovelaceCardConfig {
   icon?: string;
   label: string;

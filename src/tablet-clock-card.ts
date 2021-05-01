@@ -10,8 +10,10 @@ import {
     internalProperty,
   } from 'lit-element';
   import {
-    hasConfigOrEntityChanged,
+    hasConfigOrEntityChanged, LovelaceCardEditor,
   } from 'custom-card-helpers';
+import { TabletClockCardConfig } from './types';
+import { localize } from './localize/localize';
 
   @customElement('tablet-clock-card')
   export class TabletClockCard extends LitElement {
@@ -22,9 +24,29 @@ import {
       setInterval(() => {
         this.date = new Date();
       }, 250);
+
+      this.config = this.config || {};
+      this.config.frameless = false;
     }
 
     @internalProperty() private date: Date;
+    @internalProperty() private config!: TabletClockCardConfig;
+
+    public static getStubConfig(): object {
+      return {};
+    }
+
+    public setConfig(config: TabletClockCardConfig): void {
+      if (!config) {
+        throw new Error(localize('common.invalid_configuration'));
+      }
+
+      this.config = {
+        name: 'Tablet',
+        frameless: false,
+        ...config,
+      };
+    }
 
     protected shouldUpdate(changedProps: PropertyValues): boolean {
       return hasConfigOrEntityChanged(this, changedProps, true);
@@ -39,11 +61,13 @@ import {
       }
 
       const clockHTML = html`
-        <div class="tablet-card-clock">
-          <span>
-            ${new Intl.DateTimeFormat(undefined, timeFormatter).format(this.date)}
-          </span>
-        </div>
+        ${this.config.frameless ? `` : html`<ha-card tabindex="0">`}
+          <div class="tablet-card-clock">
+            <span>
+              ${new Intl.DateTimeFormat(undefined, timeFormatter).format(this.date)}
+            </span>
+          </div>
+        ${this.config.frameless ? `` : html`</ha-card>`}
       `;
 
       return clockHTML;
