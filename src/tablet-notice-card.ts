@@ -14,6 +14,7 @@ import {
     hasConfigOrEntityChanged, HomeAssistant,
   } from 'custom-card-helpers';
 import { TabletNoticeCardConfig } from './types';
+import { localize } from './localize/localize';
 
   @customElement('tablet-notice-card')
   export class TabletNoticeCard extends LitElement {
@@ -32,7 +33,13 @@ import { TabletNoticeCardConfig } from './types';
     }
 
     protected shouldUpdate(changedProps: PropertyValues): boolean {
-      if (this.hass.states && changedProps.has("hass") && this.config.entity) {
+      if (
+        this.hass.states &&
+        changedProps.has("hass") &&
+        this.config.entity &&
+        this.hass.states[this.config.entity] &&
+        (changedProps.get("hass") as HomeAssistant).states[this.config.entity]
+      ) {
         if (
           (changedProps.get("hass") as HomeAssistant) &&
           (changedProps.get("hass") as HomeAssistant).states[this.config.entity].state !==
@@ -63,12 +70,16 @@ import { TabletNoticeCardConfig } from './types';
       `;
 
       // only render if the entity state matches
-      if (this.config.entity) {
+      if (this.hass.states && this.config.entity && this.hass.states[this.config.entity]) {
         if (this.hass.states[this.config.entity].state === (this.config.state||'on')) {
           return notice;
         }
       } else {
-        return notice;
+        if (this.hass.states && this.config.entity) {
+          if (this.hass.states[this.config.entity]) {
+            throw new Error(localize('common.entity_not_found'));
+          }
+        }
       }
     }
 
