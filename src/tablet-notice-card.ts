@@ -1,62 +1,62 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
-    LitElement,
-    html,
-    customElement,
-    CSSResult,
-    TemplateResult,
-    css,
-    PropertyValues,
-    internalProperty,
-    property,
-  } from 'lit-element';
-  import {
-    hasConfigOrEntityChanged, HomeAssistant,
-  } from 'custom-card-helpers';
+  LitElement,
+  html,
+  customElement,
+  CSSResult,
+  TemplateResult,
+  css,
+  PropertyValues,
+  internalProperty,
+  property,
+} from 'lit-element';
+import {
+  hasConfigOrEntityChanged, HomeAssistant,
+} from 'custom-card-helpers';
 import { TabletNoticeCardConfig } from './types';
 import { localize } from './localize/localize';
 
-  @customElement('tablet-notice-card')
-  export class TabletNoticeCard extends LitElement {
-    constructor() {
-      super();
-    }
+@customElement('tablet-notice-card')
+export class TabletNoticeCard extends LitElement {
+  constructor() {
+    super();
+  }
 
-    @property({ attribute: false }) public hass!: HomeAssistant;
-    @internalProperty() private config!: TabletNoticeCardConfig;
+  @property({ attribute: false }) public hass!: HomeAssistant;
+  @internalProperty() private config!: TabletNoticeCardConfig;
 
-    public setConfig(config: TabletNoticeCardConfig): void {
-      this.config = {
-        name: 'Tablet',
-        ...config,
-      };
-    }
+  public setConfig(config: TabletNoticeCardConfig): void {
+    this.config = {
+      name: 'Tablet',
+      ...config,
+    };
+  }
 
-    protected shouldUpdate(changedProps: PropertyValues): boolean {
+  protected shouldUpdate(changedProps: PropertyValues): boolean {
+    if (
+      this.hass.states &&
+      changedProps.has("hass") &&
+      this.config.entity &&
+      this.hass.states[this.config.entity] &&
+      (changedProps.get("hass") as HomeAssistant).states[this.config.entity]
+    ) {
       if (
-        this.hass.states &&
-        changedProps.has("hass") &&
-        this.config.entity &&
-        this.hass.states[this.config.entity] &&
-        (changedProps.get("hass") as HomeAssistant).states[this.config.entity]
+        (changedProps.get("hass") as HomeAssistant) &&
+        (changedProps.get("hass") as HomeAssistant).states[this.config.entity].state !==
+        this.hass.states[this.config.entity].state
       ) {
-        if (
-          (changedProps.get("hass") as HomeAssistant) &&
-          (changedProps.get("hass") as HomeAssistant).states[this.config.entity].state !==
-          this.hass.states[this.config.entity].state
-        ) {
-          return true;
-        }
+        return true;
       }
-
-      return hasConfigOrEntityChanged(this, changedProps, false);
     }
 
-    protected render(): TemplateResult | void {
-      const notice = html`
+    return hasConfigOrEntityChanged(this, changedProps, false);
+  }
+
+  protected render(): TemplateResult | void {
+    const notice = html`
         <ha-card
           tabindex="0"
-          style="background-color: ${this.config.color||'none'};"
+          style="background-color: ${this.config.color || 'none'};"
         >
           <div class="tablet-notice-card">
             <span class="tablet-notice-card-icon">
@@ -69,22 +69,22 @@ import { localize } from './localize/localize';
         </ha-card>
       `;
 
-      // only render if the entity state matches
-      if (this.hass.states && this.config.entity && this.hass.states[this.config.entity]) {
-        if (this.hass.states[this.config.entity].state === (this.config.state||'on')) {
-          return notice;
-        }
-      } else {
-        if (this.hass.states && this.config.entity) {
-          if (this.hass.states[this.config.entity]) {
-            throw new Error(localize('common.entity_not_found'));
-          }
+    // only render if the entity state matches
+    if (this.hass.states && this.config.entity && this.hass.states[this.config.entity]) {
+      if (this.hass.states[this.config.entity].state === (this.config.state || 'on')) {
+        return notice;
+      }
+    } else {
+      if (this.hass.states && this.config.entity) {
+        if (this.hass.states[this.config.entity]) {
+          throw new Error(localize('common.entity_not_found'));
         }
       }
     }
+  }
 
-    static get styles(): CSSResult {
-      return css`
+  static get styles(): CSSResult {
+    return css`
         :root {
           --tablet-card-spacing: 10px;
         }
@@ -114,6 +114,6 @@ import { localize } from './localize/localize';
           padding-left: 0;
         }
       `;
-    }
   }
+}
 
