@@ -11,24 +11,20 @@ declare global {
   }
 }
 
-interface TabletCardColumn {
-  cards: Array<LovelaceCardConfig>;
+export interface TabletCardColumn {
+  cards: LovelaceCardConfig[];
 }
 
 export interface TabletCardConfig extends LovelaceCardConfig {
   type: string;
   name?: string;
-  show_warning?: boolean;
-  show_error?: boolean;
-  test_gui?: boolean;
 
-  columns: Array<TabletCardColumn>;
-  utility_cards: Array<LovelaceCardConfig>;
+  columns: TabletCardColumn[];
+  utility_cards: LovelaceCardConfig[];
 
   logo?: string;
 
-  screensaver_time?: number;
-  auto_refresh_time?: number;
+  screensaver_timeout?: number;
 }
 
 export interface TabletClockCardConfig extends LovelaceCardConfig {

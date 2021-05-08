@@ -1,218 +1,167 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   LitElement,
-  html,
   customElement,
   property,
-  CSSResult,
   TemplateResult,
+  html,
   css,
+  CSSResult,
   PropertyValues,
-  internalProperty,
+  internalProperty
 } from 'lit-element';
+import { ifDefined } from 'lit-html/directives/if-defined';
 import {
   HomeAssistant,
-  hasConfigOrEntityChanged,
-  hasAction,
-  LovelaceCardEditor,
-  getLovelace,
-  LovelaceCard,
-} from 'custom-card-helpers'; // This is a community maintained npm module with common helper functions/types
-import { hass } from "card-tools/src/hass";
-import './editor';
+  LovelaceCardConfig,
+  createThing,
+  LovelaceCard
+} from 'custom-card-helpers';
+import * as pjson from '../package.json';
+import {
+  TabletCardConfig,
+  TabletCardColumn
+} from './types';
 import './screensaver-card';
 import './tablet-clock-card';
-import './tablet-notice-card';
+import './tablet-notice-card'
 
-import type { TabletCardConfig } from './types';
-import { actionHandler } from './action-handler-directive';
-import { CARD_VERSION } from './const';
-import { localize } from './localize/localize';
-
-/* eslint no-console: 0 */
 console.info(
-  `%c  tablet-card \n%c  ${localize('common.version')} ${CARD_VERSION}    `,
+  `%c TABLET-CARD \n%c   Version ${pjson.version}   `,
   'color: orange; font-weight: bold; background: black',
   'color: white; font-weight: bold; background: dimgray',
 );
 
-// This puts your card into the UI card picker dialog
-(window as any).customCards = (window as any).customCards || [];
-(window as any).customCards.push({
-  type: 'tablet-card',
-  name: 'Tablet Card',
-  description: 'A template custom card for you to create something awesome',
-});
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const HELPERS = (window as any).loadCardHelpers ? (window as any).loadCardHelpers() : undefined;
 
-// TODO Name your custom element
 @customElement('tablet-card')
-export class TabletCard extends LitElement {
-  CUSTOM_TYPE_PREFIX = "custom:";
+export class TabletCard extends LitElement implements LovelaceCard {
+  @property() protected _card?: LovelaceCard;
+  @property() private _config?: TabletCardConfig;
+
+  @internalProperty() private _utilityCards: LovelaceCard[];
+  @internalProperty() private _columnCards: LovelaceCard[][];
+
+  private _hass?: HomeAssistant;
 
   constructor() {
     super();
 
-    this.screenSaverTimeout = null;
-    this.showScreenSaver = false;
-
-    this.cards = [];
-    this.utilityCards = [];
+    this._utilityCards = [];
+    this._columnCards = [];
   }
 
-  public static async getConfigElement(): Promise<LovelaceCardEditor> {
-    return document.createElement('tablet-card-editor');
-  }
-
-  public static getStubConfig(): object {
-    return {};
-  }
-
-  @property({ attribute: false }) public hass!: HomeAssistant;
-  @internalProperty() private cards: Array<Array<LovelaceCard>>;
-  @internalProperty() private utilityCards: Array<LovelaceCard>;
-  @internalProperty() private showScreenSaver: boolean;
-  @internalProperty() private screenSaverTimeout: any;
-  @internalProperty() private config!: TabletCardConfig;
-
-  private renderCard(card): LovelaceCard {
-    let tag = card.type;
-    if (tag.startsWith(this.CUSTOM_TYPE_PREFIX)) {
-      tag = tag.substr(this.CUSTOM_TYPE_PREFIX.length);
-    } else {
-      tag = `hui-${tag}-card`;
+  set hass(hass: HomeAssistant) {
+    this._hass = hass;
+    if (this._card) {
+      this._card.hass = hass;
     }
+  }
 
-    const cardElement = document.createElement(tag) as LovelaceCard;
-    cardElement.setConfig(card);
-    cardElement.hass = hass();
-
-    return cardElement;
+  public getCardSize() {
+    return 10;
   }
 
   public setConfig(config: TabletCardConfig): void {
-    if (!config) {
-      throw new Error(localize('common.invalid_configuration'));
+    if (!config.utility_cards) {
+      throw new Error(`There is no utility cards parameter defined`);
     }
-
-    if (config.test_gui) {
-      getLovelace().setEditMode(true);
+    if (!config.columns) {
+      throw new Error(`There is no columns cards parameter defined`);
     }
-
-    this.config = {
-      name: 'Tablet',
+    if (config.columns.length == 0) {
+      throw new Error(`There are no columns defined as cards`);
+    }
+    this._config = {
       ...config,
     };
 
-    this._wakeUp()
-    this._refresh()
+    console.warn("Tablet Card Config", this._config);
 
-    // prepare cards for rendering
-    this.cards = this.config.columns.map((column) => {
-      return column.cards.map((card) => {
-        return this.renderCard(card);
-      });
-    });
-    this.utilityCards = this.config.utility_cards.map((card) => {
-      return this.renderCard(card);
-    });
+    this._createUtilityStack();
+    this._createColumnCardStacks();
   }
 
-  protected shouldUpdate(changedProps: PropertyValues): boolean {
-    // provide all cards with the updated hass object
-    if (changedProps.has("hass")) {
-      changedProps.get("hass");
+  protected updated(changedProperties: PropertyValues): void {
+    super.updated(changedProperties);
+    if (!this._card) return;
+  }
 
-      this.cards.forEach((column) =>
-        column.forEach((card) =>
-          card.hass = hass()
-        )
-      );
-      this.utilityCards.forEach((card) =>
-        card.hass = hass()
-      );
+  private async _createUtilityStack() {
+    this._utilityCards = await Promise.all(this._config!.utility_cards.map(async (card) =>
+      this._createCard(card)
+    ));
+  }
+
+  private async _createColumnCardStack(column: TabletCardColumn): Promise<LovelaceCard[]> {
+    return await Promise.all(column.cards.map(async (card) =>
+      this._createCard(card)
+    ));
+  }
+
+  private async _createColumnCardStacks() {
+    this._columnCards = await Promise.all(this._config!.columns.map(async (column) =>
+      this._createColumnCardStack(column)
+    ));
+  }
+
+  protected render(): TemplateResult {
+    if (!this._hass || !this._config) {
+      return html``;
     }
 
-    return hasConfigOrEntityChanged(this, changedProps, false);
-  }
-
-  protected _sleep(): void {
-    this.showScreenSaver = true;
-    clearTimeout(this.screenSaverTimeout);
-
-    console.log("Screensaver: Start");
-  }
-
-  protected _wakeUp(): void {
-    const minutes = (this.config.screensaver_time || 1);
-    this.showScreenSaver = false;
-
-    console.log("Screensaver: Stop. Sleep in", minutes, "minutes");
-
-    clearTimeout(this.screenSaverTimeout);
-    this.screenSaverTimeout = setTimeout(() => { this._sleep() }, minutes * 60 * 1000);
-  }
-
-  protected _refresh(): void {
-    if (this.config.auto_refresh_time) {
-      const minutes = (this.config.auto_refresh_time);
-      setTimeout(() => { window.location.reload() }, minutes * 60 * 1000);
-
-      console.log("Auto reload page in", minutes, "minutes");
-    }
-  }
-
-  protected render(): TemplateResult | void {
-    console.info("Tablet Card Draw")
-
-    const logoHTML = this.config.logo ? html`
+    const logoHTML = this._config!.logo ? html`
       <div class="tablet-card-card">
-        <img class="tablet-card-logo" src="${this.config.logo}" />
+        <img class="tablet-card-logo" src="${this._config!.logo}" />
       </div>
     ` : ``;
 
     return html`
-      <ha-card
-        .actionHandler=${actionHandler({
-          hasHold: hasAction(this.config.hold_action),
-          hasDoubleClick: hasAction(this.config.double_tap_action),
-        })}
-        tabindex="0"
-        .label=${`Boilerplate: ${this.config.entity || 'No Entity Defined'}`}
-        @click="${this._wakeUp}"
-      >
-        <screensaver-card ?visible=${this.showScreenSaver}></screensaver-card>
+      <ha-card header=${ifDefined(this._config.title)}>
         <div class="tablet-card-container">
           <div class="tablet-card-column tablet-card-column-0">
             <div class="tablet-card-column-0-starter">
-              ${logoHTML}
-              <tablet-clock-card></tablet-clock-card>
-            </div>
-            <div class="tablet-card-column-0-ender">
-              ${this.utilityCards.map((card) =>
-                  html`
-                    <div class="tablet-card-card">
-                      ${ card }
-                    </div>
-                  `
+                ${logoHTML}
+                <tablet-clock-card></tablet-clock-card>
+              </div>
+              <div class="tablet-card-column-0-ender">
+                ${this._utilityCards.map((card) =>
+                  html`<div class="tablet-card-card">${card}</div>`
                 )}
-            </div>
+              </div>
           </div>
-          ${this.cards.map((column, i) =>
-            html`
+          ${this._columnCards.map((column, i) => {
+            return html`
               <div class="tablet-card-column tablet-card-column-${i + 1}" >
-                ${column.map((card) =>
+                ${column.map(card =>
                   html`
                     <div class="tablet-card-card">
-                      ${ card }
+                      ${card}
                     </div>
                   `
                 )}
               </div>
-            `
-          )}
+            `;
+          })}
         </div>
       </ha-card>
     `;
+  }
+
+  private async _createCard(config: LovelaceCardConfig): Promise<LovelaceCard> {
+    let element: LovelaceCard;
+    if (HELPERS) {
+      element = (await HELPERS).createCardElement(config);
+    } else {
+      element = createThing(config);
+    }
+    if (this._hass) {
+      element.hass = this._hass;
+    }
+    return element;
   }
 
   static get styles(): CSSResult {

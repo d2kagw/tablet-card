@@ -10,13 +10,13 @@ import {
     internalProperty,
   } from 'lit-element';
   import {
-    hasConfigOrEntityChanged, LovelaceCardEditor,
+    hasConfigOrEntityChanged, LovelaceCard,
   } from 'custom-card-helpers';
 import { TabletClockCardConfig } from './types';
 import { localize } from './localize/localize';
 
   @customElement('tablet-clock-card')
-  export class TabletClockCard extends LitElement {
+  export class TabletClockCard extends LitElement implements LovelaceCard {
     constructor() {
       super();
 
@@ -34,6 +34,10 @@ import { localize } from './localize/localize';
 
     public static getStubConfig(): object {
       return {};
+    }
+
+    public getCardSize(): number {
+      return 10;
     }
 
     public setConfig(config: TabletClockCardConfig): void {
