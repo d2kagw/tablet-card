@@ -4,7 +4,6 @@
 import {
   LitElement,
   customElement,
-  property,
   TemplateResult,
   html,
   css,
@@ -39,9 +38,7 @@ const HELPERS = (window as any).loadCardHelpers ? (window as any).loadCardHelper
 
 @customElement('tablet-card')
 export class TabletCard extends LitElement implements LovelaceCard {
-  @property() protected _card?: LovelaceCard;
-  @property() private _config?: TabletCardConfig;
-
+  @internalProperty() private _config?: TabletCardConfig;
   @internalProperty() private _utilityCards: LovelaceCard[];
   @internalProperty() private _columnCards: LovelaceCard[][];
 
@@ -77,8 +74,6 @@ export class TabletCard extends LitElement implements LovelaceCard {
     this._config = {
       ...config,
     };
-
-    console.warn("Tablet Card Config", this._config);
 
     this._createUtilityStack();
     this._createColumnCardStacks();
