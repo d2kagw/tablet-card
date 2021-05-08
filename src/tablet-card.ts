@@ -56,9 +56,8 @@ export class TabletCard extends LitElement implements LovelaceCard {
 
   set hass(hass: HomeAssistant) {
     this._hass = hass;
-    if (this._card) {
-      this._card.hass = hass;
-    }
+    this._utilityCards.forEach(card => card.hass = hass);
+    this._columnCards.forEach(column => column.forEach(card => card.hass = hass));
   }
 
   public getCardSize() {
@@ -87,7 +86,8 @@ export class TabletCard extends LitElement implements LovelaceCard {
 
   protected updated(changedProperties: PropertyValues): void {
     super.updated(changedProperties);
-    if (!this._card) return;
+    if (this._utilityCards.length == 0) return;
+    if (this._columnCards.length == 0) return;
   }
 
   private async _createUtilityStack() {
