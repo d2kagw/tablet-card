@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/camelcase */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -72,6 +73,7 @@ export class TabletCard extends LitElement implements LovelaceCard {
       throw new Error(`There are no columns defined as cards`);
     }
     this._config = {
+      show_clock: true,
       ...config,
     };
 
@@ -120,7 +122,7 @@ export class TabletCard extends LitElement implements LovelaceCard {
           <div class="tablet-card-column tablet-card-column-0">
             <div class="tablet-card-column-0-starter">
                 ${logoHTML}
-                <tablet-clock-card></tablet-clock-card>
+                ${this._config!.show_clock ? html`<tablet-clock-card></tablet-clock-card>` : `` }
               </div>
               <div class="tablet-card-column-0-ender">
                 ${this._utilityCards.map((card) =>

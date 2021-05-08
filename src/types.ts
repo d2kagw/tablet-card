@@ -25,6 +25,7 @@ export interface TabletCardConfig extends LovelaceCardConfig {
   logo?: string;
 
   screensaver_timeout?: number;
+  show_clock?: boolean;
 }
 
 export interface TabletClockCardConfig extends LovelaceCardConfig {
