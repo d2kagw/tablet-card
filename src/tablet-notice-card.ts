@@ -34,14 +34,14 @@ export class TabletNoticeCard extends LitElement {
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     if (
-      this.hass.states &&
-      changedProps.has("hass") &&
       this.config.entity &&
+      this.hass.states &&
       this.hass.states[this.config.entity] &&
+      changedProps.has("hass") &&
+      (changedProps.get("hass") as HomeAssistant) &&
       (changedProps.get("hass") as HomeAssistant).states[this.config.entity]
     ) {
       if (
-        (changedProps.get("hass") as HomeAssistant) &&
         (changedProps.get("hass") as HomeAssistant).states[this.config.entity].state !==
         this.hass.states[this.config.entity].state
       ) {

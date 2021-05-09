@@ -230,7 +230,7 @@ const rt=new WeakMap,it=(ot=t=>e=>{const s=rt.get(e);if(void 0===t&&e instanceof
           font-size: 4rem;
           line-height: 100%;
         }
-      `}};t([K()],Ht.prototype,"date",void 0),t([K()],Ht.prototype,"config",void 0),Ht=t([J("tablet-clock-card")],Ht);let jt=class extends nt{constructor(){super()}setConfig(t){this.config=Object.assign({name:"Tablet"},t)}shouldUpdate(t){return!!(this.hass.states&&t.has("hass")&&this.config.entity&&this.hass.states[this.config.entity]&&t.get("hass").states[this.config.entity]&&t.get("hass")&&t.get("hass").states[this.config.entity].state!==this.hass.states[this.config.entity].state)||kt(this,t,!1)}render(){const t=$`
+      `}};t([K()],Ht.prototype,"date",void 0),t([K()],Ht.prototype,"config",void 0),Ht=t([J("tablet-clock-card")],Ht);let jt=class extends nt{constructor(){super()}setConfig(t){this.config=Object.assign({name:"Tablet"},t)}shouldUpdate(t){return!!(this.config.entity&&this.hass.states&&this.hass.states[this.config.entity]&&t.has("hass")&&t.get("hass")&&t.get("hass").states[this.config.entity]&&t.get("hass").states[this.config.entity].state!==this.hass.states[this.config.entity].state)||kt(this,t,!1)}render(){const t=$`
         <ha-card
           tabindex="0"
           style="background-color: ${this.config.color||"none"};"
